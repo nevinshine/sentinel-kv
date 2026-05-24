@@ -618,13 +618,13 @@ fn scan_irq_handlers(module: &Module) -> HashSet<String> {
                 if let Instruction::Call(call) = instr {
                     if function_name_of_call(call) == Some("request_irq") {
                         // arg 1 is the handler function pointer
-                        if let Some((handler_op, _)) = call.arguments.get(1) {
-                            if let Operand::ConstantOperand(c) = handler_op {
-                                if let Constant::GlobalReference { name, .. } = c.as_ref() {
-                                    if let Name::Name(s) = name {
-                                        handler_names.insert(s.as_ref().to_string());
-                                    }
-                                }
+                        if let Some((Operand::ConstantOperand(c), _)) = call.arguments.get(1) {
+                            if let Constant::GlobalReference {
+                                name: Name::Name(s),
+                                ..
+                            } = c.as_ref()
+                            {
+                                handler_names.insert(s.as_ref().to_string());
                             }
                         }
                     }
@@ -635,9 +635,7 @@ fn scan_irq_handlers(module: &Module) -> HashSet<String> {
     // Phase 2: check which handler functions call kfree
     let mut handlers_that_free: HashSet<String> = HashSet::new();
     for func in &module.functions {
-        let fname = match &func.name {
-            s => s.to_string(),
-        };
+        let fname = func.name.to_string();
         if !handler_names.contains(&fname) {
             continue;
         }
