@@ -1,0 +1,487 @@
+   Compiling anyhow v1.0.102
+    Checking utf8parse v0.2.2
+    Checking colorchoice v1.0.5
+    Checking anstyle v1.0.14
+    Checking is_terminal_polyfill v1.70.2
+    Checking anstyle-query v1.1.5
+    Checking strsim v0.11.1
+    Checking log v0.4.29
+    Checking clap_lex v1.1.0
+    Checking either v1.15.0
+    Checking libc v0.2.185
+    Checking num-traits v0.2.19
+    Checking z3-sys v0.11.0
+    Checking anstyle-parse v1.0.0
+    Checking anstream v1.0.0
+    Checking z3 v0.20.0
+   Compiling llvm-sys v191.1.0
+    Checking clap_builder v4.6.0
+    Checking ordered-float v4.6.0
+   Compiling llvm-ir v0.11.3
+    Checking clap v4.6.1
+    Checking skv-analyzer v0.1.0 (/home/nevin/sentinel-kv/skv-analyzer)
+error: cannot find derive macro `Parser` in this scope
+ --> src/main.rs:9:10
+  |
+9 | #[derive(Parser, Debug)]
+  |          ^^^^^^
+  |
+note: `Parser` is imported here, but it is only a trait, without a derive macro
+ --> src/main.rs:2:5
+  |
+2 | use clap::Parser;
+  |     ^^^^^^^^^^^^
+
+error: cannot find attribute `command` in this scope
+  --> src/main.rs:10:3
+   |
+10 | #[command(author, version, about, long_about = None)]
+   |   ^^^^^^^
+
+error: cannot find attribute `arg` in this scope
+  --> src/main.rs:13:7
+   |
+13 |     #[arg(required = true)]
+   |       ^^^
+
+warning: unused import: `Context`
+ --> src/main.rs:1:14
+  |
+1 | use anyhow::{Context, Result};
+  |              ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `Terminator`
+ --> src/main.rs:3:51
+  |
+3 | use llvm_ir::{Instruction, Module, Name, Operand, Terminator, Type};
+  |                                                   ^^^^^^^^^^
+
+warning: unused import: `Ast`
+ --> src/main.rs:6:15
+  |
+6 | use z3::ast::{Ast, Int};
+  |               ^^^
+
+error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
+  --> src/main.rs:20:40
+   |
+20 |     Kmalloc { alloc_id: usize, offset: Int<'ctx> },
+   |                                        ^^^------ help: remove the unnecessary generics
+   |                                        |
+   |                                        expected 0 lifetime arguments
+   |
+note: struct defined here, with 0 lifetime parameters
+  --> /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/ast/int.rs:11:12
+   |
+11 | pub struct Int {
+   |            ^^^
+
+error[E0599]: no function or associated item named `parse` found for struct `Args` in the current scope
+  --> src/main.rs:67:22
+   |
+11 | struct Args {
+   | ----------- function or associated item `parse` not found for this struct
+...
+67 |     let args = Args::parse();
+   |                      ^^^^^ function or associated item not found in `Args`
+   |
+   = help: items from traits can only be used if the trait is implemented and in scope
+   = note: the following traits define an item `parse`, perhaps you need to implement one of them:
+           candidate #1: `Parser`
+           candidate #2: `TypedValueParser`
+
+error[E0624]: associated function `new` is private
+  --> src/main.rs:73:29
+   |
+73 |     let z3_ctx = Z3Context::new(&z3_cfg);
+   |                             ^^^ private associated function
+   |
+  ::: /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/context.rs:82:5
+   |
+82 |     pub(crate) fn new(cfg: &Config) -> Context {
+   |     ------------------------------------------ private associated function defined here
+
+error[E0061]: this function takes 0 arguments but 1 argument was supplied
+  --> src/main.rs:74:18
+   |
+74 |     let solver = Solver::new(&z3_ctx);
+   |                  ^^^^^^^^^^^ ------- unexpected argument of type `&z3::Context`
+   |
+note: associated function defined here
+  --> /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/solver.rs:48:12
+   |
+48 |     pub fn new() -> Solver {
+   |            ^^^
+help: remove the extra argument
+   |
+74 -     let solver = Solver::new(&z3_ctx);
+74 +     let solver = Solver::new();
+   |
+
+error[E0277]: can't compare `Box<std::string::String>` with `str`
+  --> src/main.rs:91:48
+   |
+91 | ...                   if fn_name == "kmalloc" || fn_name == "kzalloc" {
+   |                                  ^^ no implementation for `Box<std::string::String> == str`
+   |
+   = help: the trait `PartialEq<str>` is not implemented for `Box<std::string::String>`
+   = note: required for `&Box<std::string::String>` to implement `PartialEq<&str>`
+help: consider dereferencing here
+   |
+91 |                                     if **fn_name == "kmalloc" || fn_name == "kzalloc" {
+   |                                        ++
+
+error[E0277]: can't compare `Box<std::string::String>` with `str`
+  --> src/main.rs:91:72
+   |
+91 | ...                   if fn_name == "kmalloc" || fn_name == "kzalloc" {
+   |                                                          ^^ no implementation for `Box<std::string::String> == str`
+   |
+   = help: the trait `PartialEq<str>` is not implemented for `Box<std::string::String>`
+   = note: required for `&Box<std::string::String>` to implement `PartialEq<&str>`
+help: consider dereferencing here
+   |
+91 |                                     if fn_name == "kmalloc" || **fn_name == "kzalloc" {
+   |                                                                ++
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+  --> src/main.rs:97:64
+   |
+97 | ...                   let size_ast = Int::from_u64(&z3_ctx, *value);
+   |                                      ^^^^^^^^^^^^^ ------- unexpected argument #1 of type `&z3::Context`
+   |
+note: associated function defined here
+  --> /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/ast/int.rs:54:12
+   |
+54 |     pub fn from_u64(u: u64) -> Int {
+   |            ^^^^^^^^
+help: remove the extra argument
+   |
+97 -                                                 let size_ast = Int::from_u64(&z3_ctx, *value);
+97 +                                                 let size_ast = Int::from_u64(*value);
+   |
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> src/main.rs:103:65
+    |
+103 | ...                   offset: Int::from_u64(&z3_ctx, 0),
+    |                               ^^^^^^^^^^^^^ ------- unexpected argument #1 of type `&z3::Context`
+    |
+note: associated function defined here
+   --> /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/ast/int.rs:54:12
+    |
+ 54 |     pub fn from_u64(u: u64) -> Int {
+    |            ^^^^^^^^
+help: remove the extra argument
+    |
+103 -                                                         offset: Int::from_u64(&z3_ctx, 0),
+103 +                                                         offset: Int::from_u64(0),
+    |
+
+error[E0599]: no method named `as_ref` found for enum `Operand` in the current scope
+   --> src/main.rs:116:51
+    |
+116 |                         let base_op = gep.address.as_ref();
+    |                                                   ^^^^^^ method not found in `Operand`
+    |
+note: the method `as_ref` exists on the type `ConstantRef`
+   --> /rustc/4a4ef493e3a1488c6e321570238084b38948f6db/library/core/src/convert/mod.rs:223:4
+
+error[E0308]: mismatched types
+   --> src/main.rs:118:93
+    |
+118 | ...                   if let Some(PtrVal::Kmalloc { alloc_id, offset }) = ptr_env.get(base_name) {
+    |                                                                                   --- ^^^^^^^^^ expected `&Name`, found `Name`
+    |                                                                                   |
+    |                                                                                   arguments to this method are incorrect
+    |
+note: method defined here
+   --> /rustc/4a4ef493e3a1488c6e321570238084b38948f6db/library/std/src/collections/hash/map.rs:997:11
+help: consider borrowing here
+    |
+118 |                             if let Some(PtrVal::Kmalloc { alloc_id, offset }) = ptr_env.get(&base_name) {
+    |                                                                                             +
+
+error[E0599]: no method named `type_of` found for enum `Operand` in the current scope
+   --> src/main.rs:122:66
+    |
+122 | ...                   let mut current_ty = gep.address.type_of(); // Pointer type
+    |                                                        ^^^^^^^
+    |
+help: there is a method `type_id` with a similar name
+    |
+122 -                                 let mut current_ty = gep.address.type_of(); // Pointer type
+122 +                                 let mut current_ty = gep.address.type_id(); // Pointer type
+    |
+
+error[E0026]: variant `PointerType` does not have a field named `pointee_type`
+   --> src/main.rs:133:76
+    |
+133 | ...                   if let Type::PointerType { pointee_type, .. } = current_ty.as_ref() {
+    |                                                  ^^^^^^^^^^^^
+    |                                                  |
+    |                                                  variant `PointerType` does not have this field
+    |                                                  help: `PointerType` has a field named `addr_space`
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> src/main.rs:135:89
+    |
+135 | ...                   computed_offset = computed_offset + Int::from_u64(&z3_ctx, (*idx_val as u64) * size);
+    |                                                           ^^^^^^^^^^^^^ ------- unexpected argument #1 of type `&z3::Context`
+    |
+note: associated function defined here
+   --> /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/ast/int.rs:54:12
+    |
+ 54 |     pub fn from_u64(u: u64) -> Int {
+    |            ^^^^^^^^
+help: remove the extra argument
+    |
+135 -                                                     computed_offset = computed_offset + Int::from_u64(&z3_ctx, (*idx_val as u64) * size);
+135 +                                                     computed_offset = computed_offset + Int::from_u64((*idx_val as u64) * size);
+    |
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> src/main.rs:143:89
+    |
+143 | ...                   computed_offset = computed_offset + Int::from_u64(&z3_ctx, (*idx_val as u64) * 4); 
+    |                                                           ^^^^^^^^^^^^^ ------- unexpected argument #1 of type `&z3::Context`
+    |
+note: associated function defined here
+   --> /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/ast/int.rs:54:12
+    |
+ 54 |     pub fn from_u64(u: u64) -> Int {
+    |            ^^^^^^^^
+help: remove the extra argument
+    |
+143 -                                                     computed_offset = computed_offset + Int::from_u64(&z3_ctx, (*idx_val as u64) * 4); 
+143 +                                                     computed_offset = computed_offset + Int::from_u64((*idx_val as u64) * 4); 
+    |
+
+error[E0599]: no method named `as_ref` found for enum `Operand` in the current scope
+   --> src/main.rs:171:93
+    |
+171 |                         if let Operand::LocalOperand { name: base_name, .. } = cast.operand.as_ref() {
+    |                                                                                             ^^^^^^ method not found in `Operand`
+    |
+note: the method `as_ref` exists on the type `ConstantRef`
+   --> /rustc/4a4ef493e3a1488c6e321570238084b38948f6db/library/core/src/convert/mod.rs:223:4
+
+error[E0308]: mismatched types
+   --> src/main.rs:172:60
+    |
+172 | ...                   if let Some(val) = ptr_env.get(base_name) {
+    |                                                  --- ^^^^^^^^^ expected `&Name`, found `Name`
+    |                                                  |
+    |                                                  arguments to this method are incorrect
+    |
+note: method defined here
+   --> /rustc/4a4ef493e3a1488c6e321570238084b38948f6db/library/std/src/collections/hash/map.rs:997:11
+help: consider borrowing here
+    |
+172 |                             if let Some(val) = ptr_env.get(&base_name) {
+    |                                                            +
+
+error[E0599]: no method named `as_ref` found for enum `Operand` in the current scope
+   --> src/main.rs:180:94
+    |
+180 |                         if let Operand::LocalOperand { name: dest_name, .. } = store.address.as_ref() {
+    |                                                                                              ^^^^^^ method not found in `Operand`
+    |
+note: the method `as_ref` exists on the type `ConstantRef`
+   --> /rustc/4a4ef493e3a1488c6e321570238084b38948f6db/library/core/src/convert/mod.rs:223:4
+
+error[E0308]: mismatched types
+   --> src/main.rs:181:93
+    |
+181 | ...                   if let Some(PtrVal::Kmalloc { alloc_id, offset }) = ptr_env.get(dest_name) {
+    |                                                                                   --- ^^^^^^^^^ expected `&Name`, found `Name`
+    |                                                                                   |
+    |                                                                                   arguments to this method are incorrect
+    |
+note: method defined here
+   --> /rustc/4a4ef493e3a1488c6e321570238084b38948f6db/library/std/src/collections/hash/map.rs:997:11
+help: consider borrowing here
+    |
+181 |                             if let Some(PtrVal::Kmalloc { alloc_id, offset }) = ptr_env.get(&dest_name) {
+    |                                                                                             +
+
+error[E0599]: no method named `type_of` found for enum `Operand` in the current scope
+   --> src/main.rs:182:61
+    |
+182 | ...                   let stored_ty = store.value.type_of();
+    |                                                   ^^^^^^^
+    |
+help: there is a method `type_id` with a similar name
+    |
+182 -                                 let stored_ty = store.value.type_of();
+182 +                                 let stored_ty = store.value.type_id();
+    |
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> src/main.rs:187:52
+    |
+187 | ...                   let size_ast = Int::from_u64(&z3_ctx, size);
+    |                                      ^^^^^^^^^^^^^ ------- unexpected argument #1 of type `&z3::Context`
+    |
+note: associated function defined here
+   --> /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/ast/int.rs:54:12
+    |
+ 54 |     pub fn from_u64(u: u64) -> Int {
+    |            ^^^^^^^^
+help: remove the extra argument
+    |
+187 -                                     let size_ast = Int::from_u64(&z3_ctx, size);
+187 +                                     let size_ast = Int::from_u64(size);
+    |
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> src/main.rs:193:53
+    |
+193 | ...                   &offset.lt(&Int::from_u64(&z3_ctx, 0))
+    |                                   ^^^^^^^^^^^^^ ------- unexpected argument #1 of type `&z3::Context`
+    |
+note: associated function defined here
+   --> /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/ast/int.rs:54:12
+    |
+ 54 |     pub fn from_u64(u: u64) -> Int {
+    |            ^^^^^^^^
+help: remove the extra argument
+    |
+193 -                                         &offset.lt(&Int::from_u64(&z3_ctx, 0))
+193 +                                         &offset.lt(&Int::from_u64(0))
+    |
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> src/main.rs:191:52
+    |
+191 |   ...                   let oob_cond = z3::ast::Bool::or(&z3_ctx, &[
+    |  ______________________________________^^^^^^^^^^^^^^^^^__________-
+192 | | ...                       &access_end.gt(alloc_size),
+193 | | ...                       &offset.lt(&Int::from_u64(&z3_ctx, 0))
+194 | | ...                   ]);
+    | |_______________________- unexpected argument #2
+    |
+note: expected `&[_]`, found `&Context`
+   --> src/main.rs:191:70
+    |
+191 | ...                   let oob_cond = z3::ast::Bool::or(&z3_ctx, &[
+    |                                                        ^^^^^^^
+    = note: expected reference `&[_]`
+               found reference `&z3::Context`
+note: associated function defined here
+   --> /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/ast/bool.rs:82:9
+    |
+ 82 |         or(Z3_mk_or, Self);
+    |         ^^
+help: remove the extra argument
+    |
+191 -                                     let oob_cond = z3::ast::Bool::or(&z3_ctx, &[
+192 -                                         &access_end.gt(alloc_size),
+193 -                                         &offset.lt(&Int::from_u64(&z3_ctx, 0))
+194 -                                     ]);
+191 +                                     let oob_cond = z3::ast::Bool::or(/* values */);
+    |
+
+error[E0599]: no method named `as_ref` found for enum `Operand` in the current scope
+   --> src/main.rs:212:92
+    |
+212 |                         if let Operand::LocalOperand { name: src_name, .. } = load.address.as_ref() {
+    |                                                                                            ^^^^^^ method not found in `Operand`
+    |
+note: the method `as_ref` exists on the type `ConstantRef`
+   --> /rustc/4a4ef493e3a1488c6e321570238084b38948f6db/library/core/src/convert/mod.rs:223:4
+
+error[E0308]: mismatched types
+   --> src/main.rs:213:93
+    |
+213 | ...                   if let Some(PtrVal::Kmalloc { alloc_id, offset }) = ptr_env.get(src_name) {
+    |                                                                                   --- ^^^^^^^^ expected `&Name`, found `Name`
+    |                                                                                   |
+    |                                                                                   arguments to this method are incorrect
+    |
+note: method defined here
+   --> /rustc/4a4ef493e3a1488c6e321570238084b38948f6db/library/std/src/collections/hash/map.rs:997:11
+help: consider borrowing here
+    |
+213 |                             if let Some(PtrVal::Kmalloc { alloc_id, offset }) = ptr_env.get(&src_name) {
+    |                                                                                             +
+
+error[E0609]: no field `dest_type` on type `&llvm_ir::instruction::Load`
+   --> src/main.rs:214:55
+    |
+214 | ...                   let loaded_ty = &load.dest_type;
+    |                                             ^^^^^^^^^ unknown field
+    |
+    = note: available fields are: `address`, `dest`, `loaded_ty`, `volatile`, `atomicity` ... and 2 others
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> src/main.rs:218:52
+    |
+218 | ...                   let size_ast = Int::from_u64(&z3_ctx, size);
+    |                                      ^^^^^^^^^^^^^ ------- unexpected argument #1 of type `&z3::Context`
+    |
+note: associated function defined here
+   --> /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/ast/int.rs:54:12
+    |
+ 54 |     pub fn from_u64(u: u64) -> Int {
+    |            ^^^^^^^^
+help: remove the extra argument
+    |
+218 -                                     let size_ast = Int::from_u64(&z3_ctx, size);
+218 +                                     let size_ast = Int::from_u64(size);
+    |
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> src/main.rs:223:53
+    |
+223 | ...                   &offset.lt(&Int::from_u64(&z3_ctx, 0))
+    |                                   ^^^^^^^^^^^^^ ------- unexpected argument #1 of type `&z3::Context`
+    |
+note: associated function defined here
+   --> /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/ast/int.rs:54:12
+    |
+ 54 |     pub fn from_u64(u: u64) -> Int {
+    |            ^^^^^^^^
+help: remove the extra argument
+    |
+223 -                                         &offset.lt(&Int::from_u64(&z3_ctx, 0))
+223 +                                         &offset.lt(&Int::from_u64(0))
+    |
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+   --> src/main.rs:221:52
+    |
+221 |   ...                   let oob_cond = z3::ast::Bool::or(&z3_ctx, &[
+    |  ______________________________________^^^^^^^^^^^^^^^^^__________-
+222 | | ...                       &access_end.gt(alloc_size),
+223 | | ...                       &offset.lt(&Int::from_u64(&z3_ctx, 0))
+224 | | ...                   ]);
+    | |_______________________- unexpected argument #2
+    |
+note: expected `&[_]`, found `&Context`
+   --> src/main.rs:221:70
+    |
+221 | ...                   let oob_cond = z3::ast::Bool::or(&z3_ctx, &[
+    |                                                        ^^^^^^^
+    = note: expected reference `&[_]`
+               found reference `&z3::Context`
+note: associated function defined here
+   --> /home/nevin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/z3-0.20.0/src/ast/bool.rs:82:9
+    |
+ 82 |         or(Z3_mk_or, Self);
+    |         ^^
+help: remove the extra argument
+    |
+221 -                                     let oob_cond = z3::ast::Bool::or(&z3_ctx, &[
+222 -                                         &access_end.gt(alloc_size),
+223 -                                         &offset.lt(&Int::from_u64(&z3_ctx, 0))
+224 -                                     ]);
+221 +                                     let oob_cond = z3::ast::Bool::or(/* values */);
+    |
+
+Some errors have detailed explanations: E0026, E0061, E0107, E0277, E0308, E0599, E0609, E0624.
+For more information about an error, try `rustc --explain E0026`.
+warning: `skv-analyzer` (bin "skv-analyzer") generated 3 warnings
+error: could not compile `skv-analyzer` (bin "skv-analyzer") due to 31 previous errors; 3 warnings emitted
