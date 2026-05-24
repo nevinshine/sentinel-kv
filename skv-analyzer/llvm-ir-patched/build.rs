@@ -38,18 +38,4 @@ fn main() {
         1 => {},
         _ => panic!("llvm-ir: Multiple LLVM versions selected. Please activate only one LLVM version feature. (Got {:?})", versions),
     };
-
-    let mut build = cc::Build::new();
-    build.cpp(true).file("src/ffi.cpp");
-
-    if let Ok(output) = std::process::Command::new("llvm-config").arg("--cxxflags").output() {
-        let flags = String::from_utf8_lossy(&output.stdout);
-        for flag in flags.split_whitespace() {
-            build.flag(flag);
-        }
-    } else {
-        build.flag_if_supported("-std=c++14");
-    }
-
-    build.compile("llvmir_ffi");
 }

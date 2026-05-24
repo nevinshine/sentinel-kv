@@ -2487,20 +2487,11 @@ impl Display for RMWBinOp {
 
 // --TODO this seems to be the data structure we want. But see notes on
 // LandingPadClause::from_llvm_ref()
-/*
 #[derive(PartialEq, Clone, Debug, Hash)]
 pub enum LandingPadClause {
-    Catch(Constant),
-    Filter(Constant),
+    Catch(ConstantRef),
+    Filter(ConstantRef),
 }
-*/
-// Instead we have this for now
-/// See [LLVM 14 docs on the 'landingpad' instruction](https://releases.llvm.org/14.0.0/docs/LangRef.html#landingpad-instruction)
-///
-/// `LandingPadClause` needs more fields, but the necessary getter functions are
-/// apparently not exposed in the LLVM C API (only the C++ API)
-#[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
-pub struct LandingPadClause {}
 
 // ********* //
 // from_llvm //
@@ -2520,12 +2511,6 @@ use llvm_sys::LLVMTypeKind::LLVMVoidTypeKind;
 #[cfg(feature = "llvm-11-or-greater")]
 use std::convert::TryInto;
 use std::ffi::CStr;
-use std::os::raw::c_char;
-
-extern "C" {
-    fn LLVMIRPatchedGetInlineAsmString(val: LLVMValueRef) -> *const c_char;
-    fn LLVMIRPatchedFreeString(val: *const c_char);
-}
 
 impl Instruction {
     pub(crate) fn from_llvm_ref(
@@ -3388,7 +3373,7 @@ impl LandingPad {
             clauses: {
                 let num_clauses = unsafe { LLVMGetNumClauses(inst) };
                 (0 .. num_clauses)
-                    .map(|i| LandingPadClause::from_llvm_ref(unsafe { LLVMGetClause(inst, i) }))
+                    .map(|i| LandingPadClause::from_llvm_ref(inst, i, ctx))
                     .collect()
             },
             dest: Name::name_or_num(unsafe { get_value_name(inst) }, &mut func_ctx.ctr),
@@ -3507,14 +3492,18 @@ impl RMWBinOp {
 
 impl InlineAssembly {
     pub(crate) fn from_llvm_ref(asm: LLVMValueRef, types: &mut TypesBuilder) -> Self {
-        let asm_c_str = unsafe { LLVMIRPatchedGetInlineAsmString(asm) };
-        let assembly = if !asm_c_str.is_null() {
-            let s = unsafe { CStr::from_ptr(asm_c_str).to_string_lossy().into_owned() };
-            unsafe { LLVMIRPatchedFreeString(asm_c_str) };
-            s
-        } else {
-            String::new()
+        #[cfg(feature = "llvm-19-or-greater")]
+        let assembly = unsafe {
+            let mut len = 0;
+            let asm_c_str = llvm_sys::core::LLVMGetInlineAsmAsmString(asm, &mut len);
+            if !asm_c_str.is_null() {
+                CStr::from_ptr(asm_c_str).to_string_lossy().into_owned()
+            } else {
+                String::new()
+            }
         };
+        #[cfg(not(feature = "llvm-19-or-greater"))]
+        let assembly = String::new();
 
         Self {
             ty: types.type_from_llvm_ref(unsafe { LLVMTypeOf(asm) }),
@@ -3524,10 +3513,20 @@ impl InlineAssembly {
 }
 
 impl LandingPadClause {
-    pub(crate) fn from_llvm_ref(_lpc: LLVMValueRef) -> Self {
-        // The LLVM C API has an enum `LLVMLandingPadClauseTy`, but appears not
-        // to reference it. In particular, it's unclear how to tell whether a
-        // given clause is a `Catch` or a `Filter`.
-        Self {}
+    pub(crate) fn from_llvm_ref(
+        inst: LLVMValueRef,
+        idx: u32,
+        ctx: &mut ModuleContext,
+    ) -> Self {
+        let clause_val = unsafe { llvm_sys::core::LLVMGetClause(inst, idx) };
+        let type_kind = unsafe { llvm_sys::core::LLVMGetTypeKind(llvm_sys::core::LLVMTypeOf(clause_val)) };
+        let is_filter = type_kind == llvm_sys::LLVMTypeKind::LLVMArrayTypeKind;
+        let constant = Constant::from_llvm_ref(clause_val, ctx);
+        
+        if is_filter {
+            Self::Filter(constant)
+        } else {
+            Self::Catch(constant)
+        }
     }
 }

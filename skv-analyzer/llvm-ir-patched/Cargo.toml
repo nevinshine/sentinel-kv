@@ -199,6 +199,3 @@ strict-versioning = [
     "llvm-sys-181?/strict-versioning",
     "llvm-sys-191?/strict-versioning",
 ]
-
-[build-dependencies]
-cc = "1.2.62"
