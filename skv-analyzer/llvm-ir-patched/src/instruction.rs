@@ -2418,6 +2418,7 @@ pub enum AssemblyDialect {
 #[derive(PartialEq, Eq, Clone, Debug, Hash)]
 pub struct InlineAssembly {
     pub ty: TypeRef,
+    pub assembly: String,
 }
 
 impl Typed for InlineAssembly {
@@ -2518,6 +2519,13 @@ use llvm_sys::LLVMOpcode;
 use llvm_sys::LLVMTypeKind::LLVMVoidTypeKind;
 #[cfg(feature = "llvm-11-or-greater")]
 use std::convert::TryInto;
+use std::ffi::CStr;
+use std::os::raw::c_char;
+
+extern "C" {
+    fn LLVMIRPatchedGetInlineAsmString(val: LLVMValueRef) -> *const c_char;
+    fn LLVMIRPatchedFreeString(val: *const c_char);
+}
 
 impl Instruction {
     pub(crate) fn from_llvm_ref(
@@ -3499,12 +3507,18 @@ impl RMWBinOp {
 
 impl InlineAssembly {
     pub(crate) fn from_llvm_ref(asm: LLVMValueRef, types: &mut TypesBuilder) -> Self {
-        // The LLVM C API appears to have no way to get any information about an
-        // `InlineAssembly`? You can tell whether an `LLVMValueRef` is an
-        // `InlineAssembly`, but once you know it is one, there seem to be no
-        // other related methods
+        let asm_c_str = unsafe { LLVMIRPatchedGetInlineAsmString(asm) };
+        let assembly = if !asm_c_str.is_null() {
+            let s = unsafe { CStr::from_ptr(asm_c_str).to_string_lossy().into_owned() };
+            unsafe { LLVMIRPatchedFreeString(asm_c_str) };
+            s
+        } else {
+            String::new()
+        };
+
         Self {
             ty: types.type_from_llvm_ref(unsafe { LLVMTypeOf(asm) }),
+            assembly,
         }
     }
 }

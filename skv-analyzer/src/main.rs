@@ -268,6 +268,30 @@ enum DmaPolicy {
     Ignore,
 }
 
+/// Known-safe inline assembly patterns (read-only or barrier instructions).
+const SAFE_ASM_PATTERNS: &[&str] = &[
+    "rdtsc", "rdtscp", "cpuid", "pause", "mfence", "sfence", "lfence", "cli",
+    "sti", // interrupt flag manipulation (safe side-effect)
+    "nop", "rep nop", // spin-wait hint
+    "ud2",     // trap for BUG()
+    "int3",    // breakpoint
+    "wbinvd",  // cache writeback (safe for analysis)
+    "invlpg",  // TLB invalidation
+    "xgetbv",  // read extended control register
+];
+
+fn is_safe_inline_asm(asm_string: &str) -> bool {
+    let normalized = asm_string.trim().to_ascii_lowercase();
+    // Check if the entire asm string is a known-safe pattern or composed only of safe patterns
+    for pattern in SAFE_ASM_PATTERNS {
+        if normalized == *pattern || normalized.starts_with(pattern) {
+            return true;
+        }
+    }
+    // Also safe if empty (compiler barrier)
+    normalized.is_empty()
+}
+
 #[derive(Debug, Clone)]
 enum PtrVal {
     /// Pointer derived from kmalloc-family allocation: (allocation_id, byte_offset)
@@ -1038,13 +1062,9 @@ fn analyze(
                                     break;
                                 }
                             }
-                            // Fix 1: Inline assembly detection
                             None => {
                                 // Check if the call target is inline assembly
-                                // Note: the llvm-ir crate InlineAssembly struct only exposes `ty`,
-                                // the assembly string is not available via the LLVM C API.
-                                // We detect the presence and treat all inline asm as opaque.
-                                if let Either::Left(_asm) = &call.function {
+                                if let Either::Left(asm) = &call.function {
                                     match inline_asm_policy {
                                         InlineAsmPolicy::Trap => {
                                             inline_asm_vcs += 1;
@@ -1055,7 +1075,12 @@ fn analyze(
                                             break;
                                         }
                                         InlineAsmPolicy::Conservative => {
-                                            // All inline asm is opaque — emit UNKNOWN VC
+                                            if is_safe_inline_asm(&asm.assembly) {
+                                                // Safe pattern, continue analysis
+                                                continue;
+                                            }
+
+                                            // All other inline asm is opaque — emit UNKNOWN VC
                                             inline_asm_vcs += 1;
                                             let vc = vc_id(
                                                 func.name.as_ref(),
@@ -1076,8 +1101,8 @@ fn analyze(
                                                 mark_unknown(
                                                     &mut final_result,
                                                     &format!(
-                                                        "Opaque inline assembly in function {} (asm string not available via C API)",
-                                                        func.name,
+                                                        "Opaque inline assembly in function {}: '{}'",
+                                                        func.name, asm.assembly,
                                                     ),
                                                 );
                                             }
